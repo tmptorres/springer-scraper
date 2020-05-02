@@ -20,9 +20,6 @@ def bar_custom(current, total, width=80):
 # Main Code
 pdData = pd.read_excel("Free+English+textbooks.xlsx")
 
-pdData = pdData.loc[259:]
-
-
 # Create directory to save books
 if not os.path.exists('books'):
     os.mkdir('books')
