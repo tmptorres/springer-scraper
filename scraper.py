@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 # System
+import os
 import time
 from random import random
 # Data
@@ -19,9 +20,17 @@ def bar_custom(current, total, width=80):
 # Main Code
 pdData = pd.read_excel("Free+English+textbooks.xlsx")
 
+pdData = pdData.loc[259:]
+
+
+# Create directory to save books
+if not os.path.exists('books'):
+    os.mkdir('books')
+
 for index, row in pdData.iterrows():
     print("Iteration number {}".format(index))
-    
+
+    print("Fetching URL: " + row['OpenURL'])
     page = requests.get(row['OpenURL'])
     
     soup = BeautifulSoup(page.content, 'html.parser')
@@ -34,14 +43,23 @@ for index, row in pdData.iterrows():
             bookFilename = bookFilename + ", " + normalize('NFKD', auth.text)
     
     bookFilename = bookFilename + " - ISBN " + re.search(r"(isbn=([^\n]+))", row['OpenURL']).group(2)
-    #print(bookFilename)
+    bookFilename = bookFilename.replace(":", " -").replace("/", ", ").replace("\\", ", ")
+    print(bookFilename)
 
     if soup.find(class_="test-bookpdf-link"):
-        download("http://link.springer.com" + soup.find(class_="test-bookpdf-link").attrs['href'],
-                 "./books/"+bookFilename+".pdf", bar_custom)
-        time.sleep(1 + 4*random())
+        link = "http://link.springer.com" + soup.find(class_="test-bookpdf-link").attrs['href']
+        print("Downloading: " + link)
+        try:
+            download(link, "./books/"+bookFilename+".pdf", bar_custom)
+        except:
+            print("Failed to download: " +  link)
+        time.sleep(15*random())
         
     if soup.find(class_="test-bookepub-link"):
-        download("http://link.springer.com" + soup.find(class_="test-bookepub-link").attrs['href'],
-                 "./books/"+bookFilename+".epub", bar_custom)
-        time.sleep(1 + 4*random())
+        link = "http://link.springer.com" + soup.find(class_="test-bookepub-link").attrs['href']
+        print("Downloading: " + link)
+        try:
+            download(link, "./books/"+bookFilename+".epub", bar_custom)
+        except:
+            print("Failed to download: " +  link)
+        time.sleep(15*random())
